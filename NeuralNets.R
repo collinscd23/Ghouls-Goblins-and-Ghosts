@@ -9,6 +9,7 @@ MissingTrain <- vroom("./trainWithMissingValues.csv")
 train <- vroom("./train.csv")
 test <- vroom("./test.csv")
 
+
 my_recipe <- recipe(type~., data = MissingTrain) %>% 
   step_impute_bag(all_numeric_predictors(), impute_with = imp_vars(all_predictors())) 
 
@@ -16,6 +17,6 @@ my_recipe <- recipe(type~., data = MissingTrain) %>%
 prep <- prep(my_recipe)
 baked <- bake(prep, new_data = MissingTrain)
 
-rmse_vec(train[is.na(MissingTrain)], baked[is.na(MissingTrain)])
+
 
 stopCluster(cl)
