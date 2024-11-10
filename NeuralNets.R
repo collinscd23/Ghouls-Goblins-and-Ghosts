@@ -10,7 +10,6 @@ MissingTrain <- vroom("./trainWithMissingValues.csv")
 train <- vroom("./train.csv")
 test <- vroom("./test.csv")
 
-
 my_recipe <- recipe(type~., data = MissingTrain) %>% 
   step_impute_bag(all_numeric_predictors(), impute_with = imp_vars(all_predictors())) 
 
@@ -36,7 +35,7 @@ nn_wf <- workflow() %>%
   add_recipe(nn_recipe) %>%
   add_model(nn_model)
 
-maxHiddenUnits <- 10
+maxHiddenUnits <- 20
 
 # Create tuning grid for hidden units
 nn_tuneGrid <- grid_regular(hidden_units(range = c(1, maxHiddenUnits)), levels = 3)
@@ -45,12 +44,36 @@ nn_tuneGrid <- grid_regular(hidden_units(range = c(1, maxHiddenUnits)), levels =
 tuned_nn <- nn_wf %>%
   tune_grid(resamples = vfold_cv(train, v = 5), grid = nn_tuneGrid, metrics = metric_set(accuracy))
 
+
+cv_results <- nn_workflow %>% 
+  tune_grid(resamples = cv_folds,
+            grid = nn_tuneGrid,
+            metrics = metric_set(accuracy))
+  
+best_params <- tuned_results |> 
+  select_best(metric = "accuracy")
+
+best_params
+
+nn_final_wf <- nn_wf %>%
+  finalize_workflow(best_parms) %>%
+  fit(train)
+
+prediction <- predict(nn_final_wf, new_data = test,
+                      type = "class")
+
+
+
 # Collect and visualize tuning results
 tuned_nn %>% collect_metrics() %>%
   filter(.metric == "accuracy") %>%
   ggplot(aes(x = hidden_units, y = mean)) +
   geom_line() +
   labs(title = "Tuning Results for Hidden Units", x = "Hidden Units", y = "Accuracy")
+
+tuned_nn %>% collect_metrics() %>%
+filter(.metric=="accuracy") %>%
+ggplot(aes(x=hidden_units, y=mean)) + geom_line()
 
 stopCluster(cl)
 
