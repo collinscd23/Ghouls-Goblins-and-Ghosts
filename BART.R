@@ -18,26 +18,26 @@ my_recipe <- recipe(formula= type~., data=train) %>%
   step_mutate(color = as.factor(color)) %>% # Convert color to a factor
   step_dummy(color) 
 
-boost_model <- boost_tree(tree_depth=tune(),
-                          trees=tune(),
-                          learn_rate=tune()) %>%
-set_engine("lightgbm") %>% #or "xgboost" but lightgbm is faster
+bart_model <- bart(trees=tune()) %>% # BART figures out depth and learn_rate
+  set_engine("dbarts") %>% # might need to install
   set_mode("classification")
+
 
 boost_wf <- workflow() %>%
   add_recipe(my_recipe) %>%
-  add_model(boost_model)
-
+  add_model(bart_model)
 
 folds <- vfold_cv(train, v = 5) 
 
-boost_grid <- grid_regular(tree_depth(range = c(1,3)), trees(range = c(1, 100)),
-                           learn_rate(range = c(0, 1)), levels = 10)
+bart_grid <- grid_regular(
+  trees(range = c(50, 200)), # Tuning range for the learning rate
+  levels = 10                     # Number of levels to divide the range into
+)
 
 tune_results <- tune_grid(
   boost_wf,
   resamples = folds,
-  grid = boost_grid,
+  grid = bart_grid,
   metrics = metric_set(accuracy))
 
 best_params <- select_best(tune_results, metric = "accuracy")
@@ -54,7 +54,7 @@ kaggle_submission <- predictions %>%
   rename(type = .pred_class)
 
 # Write submission file in required format
-vroom_write(kaggle_submission, "./BOOSTED.csv", delim = ",")
+vroom_write(kaggle_submission, "./BART.csv", delim = ",")
 
 
 stopCluster(cl)
