@@ -6,6 +6,8 @@ library(parallel)
 library(bonsai)
 library(lightgbm)
 library(dbarts)
+library(finetune)
+
 
 cl <- makePSOCKcluster(8)
 
@@ -30,15 +32,17 @@ boost_wf <- workflow() %>%
 folds <- vfold_cv(train, v = 5) 
 
 bart_grid <- grid_regular(
-  trees(range = c(50, 200)), # Tuning range for the learning rate
-  levels = 10                     # Number of levels to divide the range into
+  trees(range = c(50, 500)), # Expanded range for tuning
+  levels = 20                 # More levels for finer granularity
 )
 
-tune_results <- tune_grid(
+tune_results <- tune_bayes(
   boost_wf,
   resamples = folds,
-  grid = bart_grid,
-  metrics = metric_set(accuracy))
+  initial = 10, # Number of initial random configurations
+  metrics = metric_set(accuracy),
+  iter = 30
+)
 
 best_params <- select_best(tune_results, metric = "accuracy")
 

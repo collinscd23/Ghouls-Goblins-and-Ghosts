@@ -17,7 +17,7 @@ id,type
 38,Ghost
 40,Ghoul
 41,Ghost
-42,Ghost
+42,Ghoul
 43,Ghoul
 44,Ghoul
 46,Ghoul
@@ -144,7 +144,7 @@ id,type
 250,Ghoul
 251,Ghoul
 252,Ghoul
-253,Ghoul
+253,Ghost
 254,Ghoul
 255,Ghoul
 256,Ghost
@@ -347,7 +347,7 @@ id,type
 578,Ghoul
 587,Ghost
 588,Ghoul
-591,Ghoul
+591,Ghost
 592,Ghoul
 595,Ghoul
 596,Ghost
@@ -357,7 +357,7 @@ id,type
 603,Ghoul
 605,Ghoul
 606,Ghost
-611,Ghoul
+611,Ghost
 612,Ghoul
 613,Ghoul
 615,Ghost
@@ -459,13 +459,13 @@ id,type
 787,Ghoul
 788,Ghoul
 789,Ghoul
-790,Ghost
+790,Ghoul
 791,Ghoul
 794,Ghoul
 795,Ghoul
 796,Ghoul
 798,Ghoul
-799,Ghoul
+799,Ghost
 800,Ghoul
 803,Ghoul
 805,Ghost
@@ -511,7 +511,7 @@ id,type
 871,Ghoul
 872,Ghoul
 875,Ghoul
-876,Ghost
+876,Ghoul
 879,Ghost
 880,Ghoul
 881,Ghoul
@@ -527,4 +527,4 @@ id,type
 894,Ghost
 895,Ghoul
 898,Ghost
-899,Ghost
+899,Ghoul
