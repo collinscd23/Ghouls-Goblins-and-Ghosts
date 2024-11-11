@@ -25,7 +25,7 @@ nn_recipe <- recipe(formula= type~., data=train) %>%
   step_range(all_numeric_predictors(), min=0, max=1) #scale to [0,1]
 
 nn_model <- mlp(hidden_units = tune(),
-                epochs = 50 #or 100 or 250
+                epochs = 100 #or 100 or 250
 ) %>%
 set_engine("keras") %>% #verbose = 0 prints off less
   set_mode("classification")
@@ -38,31 +38,20 @@ nn_wf <- workflow() %>%
 maxHiddenUnits <- 20
 
 # Create tuning grid for hidden units
-nn_tuneGrid <- grid_regular(hidden_units(range = c(1, maxHiddenUnits)), levels = 3)
+nn_tuneGrid <- grid_regular(hidden_units(range = c(1, maxHiddenUnits)), levels = 20)
 
 # Tune model
 tuned_nn <- nn_wf %>%
   tune_grid(resamples = vfold_cv(train, v = 5), grid = nn_tuneGrid, metrics = metric_set(accuracy))
 
-
-cv_results <- nn_workflow %>% 
-  tune_grid(resamples = cv_folds,
-            grid = nn_tuneGrid,
-            metrics = metric_set(accuracy))
-  
-best_params <- tuned_results |> 
+best_params <- tuned_nn %>% 
   select_best(metric = "accuracy")
 
-best_params
-
 nn_final_wf <- nn_wf %>%
-  finalize_workflow(best_parms) %>%
+  finalize_workflow(best_params) %>%
   fit(train)
 
-prediction <- predict(nn_final_wf, new_data = test,
-                      type = "class")
-
-
+prediction <- predict(nn_final_wf, new_data = test, type = "class")
 
 # Collect and visualize tuning results
 tuned_nn %>% collect_metrics() %>%
@@ -71,9 +60,10 @@ tuned_nn %>% collect_metrics() %>%
   geom_line() +
   labs(title = "Tuning Results for Hidden Units", x = "Hidden Units", y = "Accuracy")
 
+stopCluster(cl)
+
 tuned_nn %>% collect_metrics() %>%
 filter(.metric=="accuracy") %>%
 ggplot(aes(x=hidden_units, y=mean)) + geom_line()
 
-stopCluster(cl)
 
