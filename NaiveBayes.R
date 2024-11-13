@@ -18,7 +18,7 @@ my_recipe2 <- recipe(type ~ ., data = train) %>%
   step_mutate_at(color, fn = factor) %>%
   step_normalize(all_numeric(), -all_outcomes()) %>%
   step_lencode_glm(all_nominal_predictors(), outcome = vars(type)) %>%
-  step_smote(all_outcomes(), neighbors = 2)
+  step_smote(all_outcomes(), neighbors = 1)
 
 #Naive Bayes Model
 
