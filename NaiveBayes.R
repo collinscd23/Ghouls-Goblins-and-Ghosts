@@ -12,11 +12,13 @@ train <- vroom("train.csv")
 test <- vroom("test.csv")
 
 my_recipe <- recipe(type~., data = train) %>% 
+  step_mutate_at(color, fn = factor)
+
+my_recipe2 <- recipe(type ~ ., data = train) %>%
   step_mutate_at(color, fn = factor) %>%
-  update_role(id, new_role="id") #%>%
-  #step_lencode_mixed(all_predictors(), outcome = "type") %>%
-  #step_smote(all_outcomes(), neighbors = 2)
-  
+  step_normalize(all_numeric(), -all_outcomes()) %>%
+  step_lencode_glm(all_nominal_predictors(), outcome = vars(type)) %>%
+  step_smote(all_outcomes(), neighbors = 2)
 
 #Naive Bayes Model
 
@@ -27,7 +29,7 @@ nb_model <- naive_Bayes(Laplace=tune(),
 
 nb_workflow <- workflow() %>% 
   add_model(nb_model) %>% 
-  add_recipe(my_recipe)
+  add_recipe(my_recipe2)
 
 tuning_grid <- grid_regular(Laplace(), smoothness(), levels = 20)
 
@@ -38,7 +40,7 @@ cv_results <- nb_workflow %>%
             grid = tuning_grid, 
             metrics = metric_set(roc_auc))
 
-best_tune <- cv_results %>% select_best(metric="roc_auc")
+best_tune <- cv_results %>% select_best(metric='roc_auc')
 
 final_workflow <- nb_workflow %>% 
   finalize_workflow(best_tune) %>% 
@@ -55,3 +57,4 @@ nb_submission <- nb_preds %>%
 
 
 vroom_write(x=nb_submission, file="./NB15.csv", delim=",")
+
