@@ -12,8 +12,11 @@ train <- vroom("train.csv")
 test <- vroom("test.csv")
 
 my_recipe <- recipe(type~., data = train) %>% 
-  step_mutate_at(color, fn = factor) 
-
+  step_mutate_at(color, fn = factor) %>%
+  update_role(id, new_role="id") #%>%
+  #step_lencode_mixed(all_predictors(), outcome = "type") %>%
+  #step_smote(all_outcomes(), neighbors = 2)
+  
 
 #Naive Bayes Model
 
@@ -28,14 +31,14 @@ nb_workflow <- workflow() %>%
 
 tuning_grid <- grid_regular(Laplace(), smoothness(), levels = 20)
 
-folds <- vfold_cv(train, v = 10, repeats=5)
+folds <- vfold_cv(train, v = 10, repeats=1)
 
 cv_results <- nb_workflow %>% 
   tune_grid(resamples = folds,
             grid = tuning_grid, 
-            metrics = metric_set(accuracy))
+            metrics = metric_set(roc_auc))
 
-best_tune <- cv_results %>% select_best(metric='accuracy')
+best_tune <- cv_results %>% select_best(metric="roc_auc")
 
 final_workflow <- nb_workflow %>% 
   finalize_workflow(best_tune) %>% 
@@ -51,4 +54,4 @@ nb_submission <- nb_preds %>%
   rename(type = .pred_class) 
 
 
-vroom_write(x=nb_submission, file="./NB.csv", delim=",")
+vroom_write(x=nb_submission, file="./NB15.csv", delim=",")
