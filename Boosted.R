@@ -31,8 +31,8 @@ boost_wf <- workflow() %>%
 
 folds <- vfold_cv(train, v = 5) 
 
-boost_grid <- grid_regular(tree_depth(range = c(1,3)), trees(range = c(1, 100)),
-                           learn_rate(range = c(0, 1)), levels = 10)
+boost_grid <- grid_regular(tree_depth(range = c(1,2)), trees(range = c(1, 100)),
+                           learn_rate(range = c(0, .5)), levels = 5)
 
 tune_results <- tune_grid(
   boost_wf,
